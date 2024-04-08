@@ -46,7 +46,8 @@ func (phone Cell) AddDataAndInput() string {
 }
 */
 func (phone *Cell) DeleteObject() {
-	phone = &Cell{}
+	var newPhone = &Cell{}
+	*phone = *newPhone
 }
 
 func main() {

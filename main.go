@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
+	"unicode"
 )
 
 type Cell struct {
@@ -61,8 +61,8 @@ func main() {
 			}
 		}
 
-		// Convert launch announced to integer
-		launchYear := extractYear(record[2])
+		launchYearString := extractFirstFourDigits(record[2])
+		launchYear := stringToInt(launchYearString)
 
 		// Convert body weight to float
 		bodyWeight := parseFloat(record[5])
@@ -94,7 +94,7 @@ func main() {
 	}
 
 	// Testing
-	indexToLookup := 2
+	indexToLookup := 3
 
 	if cell, ok := cellMap[indexToLookup]; ok {
 		fmt.Printf("Cell details for index %d:\n", indexToLookup)
@@ -107,12 +107,41 @@ func main() {
 	}
 }
 
-func extractYear(dateStr string) int {
-	date, err := time.Parse("January 2, 2006", dateStr)
-	if err != nil {
-		return 0
+func extractFirstFourDigits(input string) string {
+	var digits []rune
+	digitCount := 0
+
+	// Iterate over each character
+	for _, char := range input {
+		// Check if character is a digit
+		if unicode.IsDigit(char) {
+			digits = append(digits, char)
+			digitCount++
+			if digitCount == 4 {
+				break
+			}
+		} else {
+			// Reset digitCount
+			digits = nil
+			digitCount = 0
+		}
 	}
-	return date.Year()
+
+	// Convert the collected digits to a string
+	return string(digits)
+}
+
+func stringToInt(s string) int {
+	// Use strconv.Atoi to convert the string to an integer
+	num, _ := strconv.Atoi(s)
+
+	// Return the converted integer value
+	return num
+}
+
+func floatToString(value float64) string {
+	// Use FormatFloat to convert float64 to string
+	return strconv.FormatFloat(value, 'f', -1, 64)
 }
 
 // Change string to float

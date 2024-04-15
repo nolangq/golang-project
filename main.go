@@ -93,23 +93,20 @@ func main() {
 	}
 
 	// Testing
-	// Call the countPhonesWithOneSensor function
-	count := countPhonesWithOneSensor(cellMap)
-
-	// Print the count of phones with only one feature sensor
+	// Number of phones with one sensor
+	count := countSensor(cellMap)
 	fmt.Printf("Number of phones with only one feature sensor: %d\n", count)
 
-	results := findAnnouncedAndReleasedInDifferentYears(cellMap)
+	results := findDifferentYears(cellMap)
 	fmt.Println("Phones announced in one year and released in another year:")
 	for _, phone := range results {
 		fmt.Printf("OEM: %s, Model: %s\n", phone.oem, phone.model)
 	}
 
-	highestAvgOEM := findHighestAvgBodyWeightOEM(cellMap)
+	highestAvgOEM := findHighestAvgBodyWeight(cellMap)
 	fmt.Printf("OEM with the highest average body weight: %s\n", highestAvgOEM)
 
 	indexToLookup := 3
-
 	if cell, ok := cellMap[indexToLookup]; ok {
 		fmt.Printf("Cell details for index %d:\n", indexToLookup)
 		fmt.Printf("OEM: %s\n", cell.oem)
@@ -122,15 +119,13 @@ func main() {
 }
 
 // Report Functions
-// Calculates highest average body weight
-func countPhonesWithOneSensor(cells map[int]Cell) int {
+// Count sensors
+func countSensor(cells map[int]Cell) int {
 	count := 0
 
 	for _, cell := range cells {
-		// Split the featuresSensors string by comma to count the number of sensors
 		sensors := strings.Split(cell.featuresSensors, ",")
 
-		// Remove leading and trailing spaces from each sensor name
 		for i := range sensors {
 			sensors[i] = strings.TrimSpace(sensors[i])
 		}
@@ -144,7 +139,8 @@ func countPhonesWithOneSensor(cells map[int]Cell) int {
 	return count
 }
 
-func findHighestAvgBodyWeightOEM(cellMap map[int]Cell) string {
+// Calculates highest average body weight
+func findHighestAvgBodyWeight(cellMap map[int]Cell) string {
 	// Create map to store cumulative body weights and count of phones per OEM
 	weightSum := make(map[string]float64)
 	count := make(map[string]int)
@@ -169,7 +165,7 @@ func findHighestAvgBodyWeightOEM(cellMap map[int]Cell) string {
 	return highestAvgOEM
 }
 
-func findAnnouncedAndReleasedInDifferentYears(cellMap map[int]Cell) []Cell {
+func findDifferentYears(cellMap map[int]Cell) []Cell {
 	var result []Cell
 
 	for _, cell := range cellMap {

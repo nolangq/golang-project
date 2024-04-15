@@ -93,17 +93,20 @@ func main() {
 	}
 
 	// Testing
-	results := findAnnouncedAndReleasedInDifferentYears(cellMap)
+	// Number of phones with one sensor
+	count := countSensor(cellMap)
+	fmt.Printf("Number of phones with only one feature sensor: %d\n", count)
+
+	results := findDifferentYears(cellMap)
 	fmt.Println("Phones announced in one year and released in another year:")
 	for _, phone := range results {
 		fmt.Printf("OEM: %s, Model: %s\n", phone.oem, phone.model)
 	}
 
-	highestAvgOEM := findHighestAvgBodyWeightOEM(cellMap)
+	highestAvgOEM := findHighestAvgBodyWeight(cellMap)
 	fmt.Printf("OEM with the highest average body weight: %s\n", highestAvgOEM)
 
 	indexToLookup := 3
-
 	if cell, ok := cellMap[indexToLookup]; ok {
 		fmt.Printf("Cell details for index %d:\n", indexToLookup)
 		fmt.Printf("OEM: %s\n", cell.oem)
@@ -116,8 +119,28 @@ func main() {
 }
 
 // Report Functions
+// Count sensors
+func countSensor(cells map[int]Cell) int {
+	count := 0
+
+	for _, cell := range cells {
+		sensors := strings.Split(cell.featuresSensors, ",")
+
+		for i := range sensors {
+			sensors[i] = strings.TrimSpace(sensors[i])
+		}
+
+		// Check if exactly one sensor is present
+		if len(sensors) == 1 && sensors[0] != "" {
+			count++
+		}
+	}
+
+	return count
+}
+
 // Calculates highest average body weight
-func findHighestAvgBodyWeightOEM(cellMap map[int]Cell) string {
+func findHighestAvgBodyWeight(cellMap map[int]Cell) string {
 	// Create map to store cumulative body weights and count of phones per OEM
 	weightSum := make(map[string]float64)
 	count := make(map[string]int)
@@ -142,7 +165,7 @@ func findHighestAvgBodyWeightOEM(cellMap map[int]Cell) string {
 	return highestAvgOEM
 }
 
-func findAnnouncedAndReleasedInDifferentYears(cellMap map[int]Cell) []Cell {
+func findDifferentYears(cellMap map[int]Cell) []Cell {
 	var result []Cell
 
 	for _, cell := range cellMap {

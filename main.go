@@ -93,6 +93,12 @@ func main() {
 	}
 
 	// Testing
+	// Call the countPhonesWithOneSensor function
+	count := countPhonesWithOneSensor(cellMap)
+
+	// Print the count of phones with only one feature sensor
+	fmt.Printf("Number of phones with only one feature sensor: %d\n", count)
+
 	results := findAnnouncedAndReleasedInDifferentYears(cellMap)
 	fmt.Println("Phones announced in one year and released in another year:")
 	for _, phone := range results {
@@ -117,6 +123,27 @@ func main() {
 
 // Report Functions
 // Calculates highest average body weight
+func countPhonesWithOneSensor(cells map[int]Cell) int {
+	count := 0
+
+	for _, cell := range cells {
+		// Split the featuresSensors string by comma to count the number of sensors
+		sensors := strings.Split(cell.featuresSensors, ",")
+
+		// Remove leading and trailing spaces from each sensor name
+		for i := range sensors {
+			sensors[i] = strings.TrimSpace(sensors[i])
+		}
+
+		// Check if exactly one sensor is present
+		if len(sensors) == 1 && sensors[0] != "" {
+			count++
+		}
+	}
+
+	return count
+}
+
 func findHighestAvgBodyWeightOEM(cellMap map[int]Cell) string {
 	// Create map to store cumulative body weights and count of phones per OEM
 	weightSum := make(map[string]float64)

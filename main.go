@@ -92,35 +92,108 @@ func main() {
 		index++
 	}
 
-	// Testing
-	// Number of phones with one sensor
-	count := countSensor(cellMap)
-	fmt.Printf("Number of phones with only one feature sensor: %d\n", count)
+	// Cell functions in use
+	//Creating temp phone
+	var myPhone = Cell{}
 
-	results := findDifferentYears(cellMap)
+	// Counting number of sensors
+	myPhone.featuresSensors = "FaceID, Fingerprint (rear-mounted), accelerometer, proximity"
+	var sensors = myPhone.countSensors()
+	fmt.Printf("Number of sensors in my phone: %d\n", sensors)
+
+	// Determining compatability
+	var target = "Android 11"
+	myPhone.setPlatformOs("Android 10")
+	var compatibility = myPhone.isPlatformCompatible(target)
+	fmt.Printf("OS Compatible: %t\n", compatibility)
+	myPhone.platformOs = "Android 11"
+	compatibility = myPhone.isPlatformCompatible(target)
+	fmt.Printf("OS Compatible: %t\n", compatibility)
+	if compatibility {
+		fmt.Printf("My phone is compatible with %s\n", target)
+	} else {
+		fmt.Printf("My phone is not compatible with %s\n", target)
+	}
+
+	hasFaceID := myPhone.hasFaceID()
+
+	if hasFaceID {
+		fmt.Printf("My phone has FaceID sensor\n")
+	} else {
+		fmt.Printf("My phone does not have FaceID sensor\n")
+	}
+
+	// Determining weight class of my phone
+	myPhone.bodyWeight = 120.5
+	myPhone.weightClass()
+
+	// Check if phone is available
+	myPhone.setLaunchStatus("Available. Released 2020, May 11")
+	isAvailable := myPhone.isAvailable()
+
+	if isAvailable {
+		fmt.Printf("My phones launch status is available\n")
+	} else {
+		fmt.Printf("My phones launch status is not available\n")
+	}
+
+	// Resetting phone
+	myPhone.reset()
+
+	// Display phones reset
+	myPhone.displayDetails()
+
+	// Report functions in use
+	// Finding year with most releases
+	year := yearWithMostLaunches(cellMap)
+
+	if year > 0 {
+		fmt.Printf("Year with the most phone launches (later than 1999): %d\n", year)
+	} else {
+		fmt.Println("No launches found in years later than 1999.")
+	}
+	// Finding how many phones have one sensor
+	count := oneSensor(cellMap)
+	fmt.Printf("Number of phones with only one feature sensor: %d\n", count)
+	// Finding which phones released atleast one year later
+	results := oneYearLater(cellMap)
 	fmt.Println("Phones announced in one year and released in another year:")
 	for _, phone := range results {
-		fmt.Printf("OEM: %s, Model: %s\n", phone.oem, phone.model)
+		fmt.Printf("%s, %s\n", phone.oem, phone.model)
 	}
-
+	// Finding the highest average body weight
 	highestAvgOEM := findHighestAvgBodyWeight(cellMap)
 	fmt.Printf("OEM with the highest average body weight: %s\n", highestAvgOEM)
-
-	indexToLookup := 3
-	if cell, ok := cellMap[indexToLookup]; ok {
-		fmt.Printf("Cell details for index %d:\n", indexToLookup)
-		fmt.Printf("OEM: %s\n", cell.oem)
-		fmt.Printf("Launch Announced: %d\n", cell.launchAnnounced)
-		fmt.Printf("Body Weight: %.2f\n", cell.bodyWeight)
-		fmt.Printf("Display Size: %.2f\n", cell.displaySize)
-	} else {
-		fmt.Printf("Cell with index %d not found\n", indexToLookup)
-	}
 }
 
 // Report Functions
-// Count sensors
-func countSensor(cells map[int]Cell) int {
+// Finds which year has the most phones launched
+func yearWithMostLaunches(cells map[int]Cell) int {
+	launchCount := make(map[int]int)
+
+	for _, cell := range cells {
+		year := cell.launchAnnounced
+
+		if year > 1999 {
+			launchCount[year]++
+		}
+	}
+
+	maxYear := 0
+	maxCount := 0
+
+	for year, count := range launchCount {
+		if count > maxCount {
+			maxYear = year
+			maxCount = count
+		}
+	}
+
+	return maxYear
+}
+
+// Finds how many phones have only one sensor
+func oneSensor(cells map[int]Cell) int {
 	count := 0
 
 	for _, cell := range cells {
@@ -139,9 +212,8 @@ func countSensor(cells map[int]Cell) int {
 	return count
 }
 
-// Calculates highest average body weight
+// Finds the OEM with highest average body weight
 func findHighestAvgBodyWeight(cellMap map[int]Cell) string {
-	// Create map to store cumulative body weights and count of phones per OEM
 	weightSum := make(map[string]float64)
 	count := make(map[string]int)
 
@@ -153,7 +225,6 @@ func findHighestAvgBodyWeight(cellMap map[int]Cell) string {
 	var highestAvgOEM string
 	var maxAvgWeight float64
 
-	// Calculate average body weight for each OEM
 	for oem, sum := range weightSum {
 		avgWeight := sum / float64(count[oem])
 		if avgWeight > maxAvgWeight {
@@ -165,7 +236,8 @@ func findHighestAvgBodyWeight(cellMap map[int]Cell) string {
 	return highestAvgOEM
 }
 
-func findDifferentYears(cellMap map[int]Cell) []Cell {
+// Finds how many phones released atleast a year after announcement
+func oneYearLater(cellMap map[int]Cell) []Cell {
 	var result []Cell
 
 	for _, cell := range cellMap {
@@ -180,8 +252,8 @@ func findDifferentYears(cellMap map[int]Cell) []Cell {
 	return result
 }
 
+// Extracts release year (for findDifferentYears function)
 func extractReleaseYear(launchStatus string) int {
-	// Split the launch status by spaces and commas
 	parts := strings.FieldsFunc(launchStatus, func(r rune) bool {
 		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
 	})
@@ -194,16 +266,15 @@ func extractReleaseYear(launchStatus string) int {
 		}
 	}
 
-	return 0 // Return 0 if release year not found or invalid format
+	return 0
 }
 
+// Takes the first four digits (for launch year)
 func extractFirstFourDigits(input string) string {
 	var digits []rune
 	digitCount := 0
 
-	// Iterate over each character
 	for _, char := range input {
-		// Check if character is a digit
 		if unicode.IsDigit(char) {
 			digits = append(digits, char)
 			digitCount++
@@ -211,28 +282,25 @@ func extractFirstFourDigits(input string) string {
 				break
 			}
 		} else {
-			// Reset digitCount
 			digits = nil
 			digitCount = 0
 		}
 	}
 
-	// Convert the collected digits to a string
 	return string(digits)
 }
 
+// Turns a string to an integer
 func stringToInt(s string) int {
-	// Convert the string to an integer
 	num, _ := strconv.Atoi(s)
 	return num
 }
 
+// Turns a float to a string
 func floatToString(value float64) string {
-	// Convert float64 to string
 	return strconv.FormatFloat(value, 'f', -1, 64)
 }
 
-// Change string to float
 func parseFloat(sizeStr string) float64 {
 	parts := strings.Fields(sizeStr)
 	if len(parts) > 0 {
@@ -245,92 +313,163 @@ func parseFloat(sizeStr string) float64 {
 }
 
 // Seven class methods
-// Display phone's details
-func (c Cell) DisplayDetails() {
-	fmt.Printf("OEM: %s\n", c.oem)
-	fmt.Printf("Model: %s\n", c.model)
-	fmt.Printf("Launch Announced: %d\n", c.launchAnnounced)
-	fmt.Printf("Launch Status: %s\n", c.launchStatus)
-	fmt.Printf("Body Dimensions: %s\n", c.bodyDimensions)
-	fmt.Printf("Body Weight: %.2f\n", c.bodyWeight)
-	fmt.Printf("Body SIM: %s\n", c.bodySim)
-	fmt.Printf("Display Type: %s\n", c.displayType)
-	fmt.Printf("Display Size: %.2f\n", c.displaySize)
-	fmt.Printf("Display Resolution: %s\n", c.displayResolution)
-	fmt.Printf("Features & Sensors: %s\n", c.featuresSensors)
-	fmt.Printf("Platform OS: %s\n", c.platformOs)
+// Displays all the phones information
+func (phone Cell) displayDetails() {
+	fmt.Printf("OEM: %s\n", phone.oem)
+	fmt.Printf("Model: %s\n", phone.model)
+	fmt.Printf("Launch Announced: %d\n", phone.launchAnnounced)
+	fmt.Printf("Launch Status: %s\n", phone.launchStatus)
+	fmt.Printf("Body Dimensions: %s\n", phone.bodyDimensions)
+	fmt.Printf("Body Weight: %.2f\n", phone.bodyWeight)
+	fmt.Printf("Body SIM: %s\n", phone.bodySim)
+	fmt.Printf("Display Type: %s\n", phone.displayType)
+	fmt.Printf("Display Size: %.2f\n", phone.displaySize)
+	fmt.Printf("Display Resolution: %s\n", phone.displayResolution)
+	fmt.Printf("Features & Sensors: %s\n", phone.featuresSensors)
+	fmt.Printf("Platform OS: %s\n", phone.platformOs)
+}
+
+// Resets everything to empty
+func (phone *Cell) reset() {
+	phone.oem = ""
+	phone.model = ""
+	phone.launchAnnounced = 0
+	phone.launchStatus = ""
+	phone.bodyDimensions = ""
+	phone.bodyWeight = 0.0
+	phone.bodySim = ""
+	phone.displayType = ""
+	phone.displaySize = 0.0
+	phone.displayResolution = ""
+	phone.featuresSensors = ""
+	phone.platformOs = ""
+}
+
+// Gets the number of sensors that the phone has
+func (phone *Cell) countSensors() int {
+	sensorNames := strings.Split(phone.featuresSensors, ",")
+
+	count := 0
+
+	for _, sensor := range sensorNames {
+		sensor = strings.TrimSpace(sensor)
+
+		if sensor != "" {
+			count++
+		}
+	}
+
+	return count
+}
+
+// Checks if the phone is compatible with a certain OS
+func (phone *Cell) isPlatformCompatible(targetOs string) bool {
+	normalizedPlatformOs := strings.ToLower(strings.TrimSpace(phone.platformOs))
+	normalizedTargetOs := strings.ToLower(strings.TrimSpace(targetOs))
+
+	return strings.Contains(normalizedPlatformOs, normalizedTargetOs)
+}
+
+// Calculates the weight class of the phone
+func (phone *Cell) weightClass() {
+	const (
+		lightWeightUpperLimit = 150.0
+		heavyWeightLowerLimit = 200.0
+	)
+
+	if phone.bodyWeight <= lightWeightUpperLimit {
+		fmt.Printf("Lightweight\n")
+	} else if phone.bodyWeight > heavyWeightLowerLimit {
+		fmt.Printf("Heavy\n")
+	} else {
+		fmt.Printf("Standard\n")
+	}
+}
+
+// Check if the phone has faceID
+func (phone *Cell) hasFaceID() bool {
+	featuresLower := strings.ToLower(phone.featuresSensors)
+
+	return strings.Contains(featuresLower, "faceid")
+}
+
+// Checks if the phone is available
+func (phone *Cell) isAvailable() bool {
+	statusLower := strings.ToLower(phone.launchStatus)
+
+	return strings.Contains(statusLower, "available")
 }
 
 // Setter and getter functions for Cell
 func (phone Cell) getOem() string {
 	return phone.oem
 }
-func (phone Cell) setOem(tempOem string) {
+func (phone *Cell) setOem(tempOem string) {
 	phone.oem = tempOem
 }
 func (phone Cell) getModel() string {
 	return phone.model
 }
-func (phone Cell) setModel(tempModel string) {
+func (phone *Cell) setModel(tempModel string) {
 	phone.model = tempModel
 }
 func (phone Cell) getLaunchAnnounced() int {
 	return phone.launchAnnounced
 }
-func (phone Cell) setLaunchAnnounced(tempLaunchAnnounced int) {
+func (phone *Cell) setLaunchAnnounced(tempLaunchAnnounced int) {
 	phone.launchAnnounced = tempLaunchAnnounced
 }
 func (phone Cell) getLaunchStatus() string {
 	return phone.launchStatus
 }
-func (phone Cell) setLaunchStatus(tempLaunchStatus string) {
+func (phone *Cell) setLaunchStatus(tempLaunchStatus string) {
 	phone.launchStatus = tempLaunchStatus
 }
 func (phone Cell) getBodyDimensions() string {
 	return phone.bodyDimensions
 }
-func (phone Cell) setBodyDimensions(tempbodyDimensions string) {
+func (phone *Cell) setBodyDimensions(tempbodyDimensions string) {
 	phone.bodyDimensions = tempbodyDimensions
 }
 func (phone Cell) getBodyWeight() float64 {
 	return phone.bodyWeight
 }
-func (phone Cell) setBodyWeight(tempBodyWeight float64) {
+func (phone *Cell) setBodyWeight(tempBodyWeight float64) {
 	phone.bodyWeight = tempBodyWeight
 }
 func (phone Cell) getBodySim() string {
 	return phone.bodySim
 }
-func (phone Cell) setBodySim(tempBodySim string) {
+func (phone *Cell) setBodySim(tempBodySim string) {
 	phone.bodySim = tempBodySim
 }
 func (phone Cell) getDisplayType() string {
 	return phone.displayType
 }
-func (phone Cell) setDisplayType(tempDisplayType string) {
+func (phone *Cell) setDisplayType(tempDisplayType string) {
 	phone.displayType = tempDisplayType
 }
 func (phone Cell) getDisplaySize() float64 {
 	return phone.displaySize
 }
-func (phone Cell) setDisplaySize(tempDisplaySize float64) {
+func (phone *Cell) setDisplaySize(tempDisplaySize float64) {
 	phone.displaySize = tempDisplaySize
 }
 func (phone Cell) getDisplayResolution() string {
 	return phone.displayResolution
 }
-func (phone Cell) setDisplay_Resolution(tempDisplayResolution string) {
+func (phone *Cell) setDisplay_Resolution(tempDisplayResolution string) {
 	phone.displayResolution = tempDisplayResolution
 }
 func (phone Cell) getFeaturesSensors() string {
 	return phone.featuresSensors
 }
-func (phone Cell) setFeaturesSensors(tempFeaturesSensors string) {
+func (phone *Cell) setFeaturesSensors(tempFeaturesSensors string) {
 	phone.featuresSensors = tempFeaturesSensors
 }
 func (phone Cell) gePlatformOs() string {
 	return phone.platformOs
 }
-func (phone Cell) setPlatformOs(tempPlatformOs string) {
+func (phone *Cell) setPlatformOs(tempPlatformOs string) {
 	phone.platformOs = tempPlatformOs
 }

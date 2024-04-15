@@ -85,7 +85,6 @@ func main() {
 			featuresSensors:   record[10],
 			platformOs:        record[11],
 		}
-
 		// Store the object in the map with the current index
 		cellMap[index] = cell
 
@@ -94,6 +93,15 @@ func main() {
 	}
 
 	// Testing
+	results := findAnnouncedAndReleasedInDifferentYears(cellMap)
+	fmt.Println("Phones announced in one year and released in another year:")
+	for _, phone := range results {
+		fmt.Printf("OEM: %s, Model: %s\n", phone.oem, phone.model)
+	}
+
+	highestAvgOEM := findHighestAvgBodyWeightOEM(cellMap)
+	fmt.Printf("OEM with the highest average body weight: %s\n", highestAvgOEM)
+
 	indexToLookup := 3
 
 	if cell, ok := cellMap[indexToLookup]; ok {
@@ -105,6 +113,65 @@ func main() {
 	} else {
 		fmt.Printf("Cell with index %d not found\n", indexToLookup)
 	}
+}
+
+// Report Functions
+// Calculates highest average body weight
+func findHighestAvgBodyWeightOEM(cellMap map[int]Cell) string {
+	// Create map to store cumulative body weights and count of phones per OEM
+	weightSum := make(map[string]float64)
+	count := make(map[string]int)
+
+	for _, cell := range cellMap {
+		weightSum[cell.oem] += cell.bodyWeight
+		count[cell.oem]++
+	}
+
+	var highestAvgOEM string
+	var maxAvgWeight float64
+
+	// Calculate average body weight for each OEM
+	for oem, sum := range weightSum {
+		avgWeight := sum / float64(count[oem])
+		if avgWeight > maxAvgWeight {
+			maxAvgWeight = avgWeight
+			highestAvgOEM = oem
+		}
+	}
+
+	return highestAvgOEM
+}
+
+func findAnnouncedAndReleasedInDifferentYears(cellMap map[int]Cell) []Cell {
+	var result []Cell
+
+	for _, cell := range cellMap {
+		if cell.launchStatus != "" {
+			releaseYear := extractReleaseYear(cell.launchStatus)
+			if releaseYear != 0 && releaseYear != cell.launchAnnounced {
+				result = append(result, cell)
+			}
+		}
+	}
+
+	return result
+}
+
+func extractReleaseYear(launchStatus string) int {
+	// Split the launch status by spaces and commas
+	parts := strings.FieldsFunc(launchStatus, func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
+	})
+
+	for _, part := range parts {
+		if len(part) == 4 {
+			if year, err := strconv.Atoi(part); err == nil {
+				return year
+			}
+		}
+	}
+
+	return 0 // Return 0 if release year not found or invalid format
 }
 
 func extractFirstFourDigits(input string) string {
@@ -132,15 +199,13 @@ func extractFirstFourDigits(input string) string {
 }
 
 func stringToInt(s string) int {
-	// Use strconv.Atoi to convert the string to an integer
+	// Convert the string to an integer
 	num, _ := strconv.Atoi(s)
-
-	// Return the converted integer value
 	return num
 }
 
 func floatToString(value float64) string {
-	// Use FormatFloat to convert float64 to string
+	// Convert float64 to string
 	return strconv.FormatFloat(value, 'f', -1, 64)
 }
 
@@ -154,6 +219,23 @@ func parseFloat(sizeStr string) float64 {
 		}
 	}
 	return 0.0
+}
+
+// Seven class methods
+// Display phone's details
+func (c Cell) DisplayDetails() {
+	fmt.Printf("OEM: %s\n", c.oem)
+	fmt.Printf("Model: %s\n", c.model)
+	fmt.Printf("Launch Announced: %d\n", c.launchAnnounced)
+	fmt.Printf("Launch Status: %s\n", c.launchStatus)
+	fmt.Printf("Body Dimensions: %s\n", c.bodyDimensions)
+	fmt.Printf("Body Weight: %.2f\n", c.bodyWeight)
+	fmt.Printf("Body SIM: %s\n", c.bodySim)
+	fmt.Printf("Display Type: %s\n", c.displayType)
+	fmt.Printf("Display Size: %.2f\n", c.displaySize)
+	fmt.Printf("Display Resolution: %s\n", c.displayResolution)
+	fmt.Printf("Features & Sensors: %s\n", c.featuresSensors)
+	fmt.Printf("Platform OS: %s\n", c.platformOs)
 }
 
 // Setter and getter functions for Cell

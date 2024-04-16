@@ -29,6 +29,7 @@ func main() {
 	// Opens csv file
 	file, err := os.Open("cells.csv")
 
+	// Test 1
 	// Checks for error
 	if err != nil {
 		log.Fatal("Error while reading the file", err)
@@ -93,19 +94,34 @@ func main() {
 	}
 
 	// Cell functions in use
-	//Creating temp phone
+	// Creating temp phone
 	var myPhone = Cell{}
-
+	// Plugging random values
+	myPhone.setOem("Apple")
+	myPhone.setModel("iPhone 12")
+	myPhone.setBodyDimensions("145 x 56 x 23 mm (5.71 x 2.20 x 0.91 in)")
+	myPhone.setBodySim("Nano-SIM card & eSIM")
+	myPhone.setDisplayType("Monochrome graphic")
+	myPhone.setDisplay_Resolution("480 x 800 pixels, 5:3 ratio (~267 ppi density)")
 	// Counting number of sensors
 	myPhone.featuresSensors = "FaceID, Fingerprint (rear-mounted), accelerometer, proximity"
 	var sensors = myPhone.countSensors()
 	fmt.Printf("Number of sensors in my phone: %d\n", sensors)
 
+	// Test 2
+	// Showing that displaySize, bodyWeight, and launchAnnounced are the correct data types
+	myPhone.displaySize = 3.5
+	myPhone.bodyWeight = 162
+	myPhone.launchAnnounced = 1999
+	fmt.Printf("\nData Type of displaySize: %T\n", myPhone.displaySize)
+	fmt.Printf("Data Type of bodyWeight: %T\n", myPhone.bodyWeight)
+	fmt.Printf("Data Type of launchAnnounced: %T\n", myPhone.launchAnnounced)
+
 	// Determining compatability
 	var target = "Android 11"
 	myPhone.setPlatformOs("Android 10")
 	var compatibility = myPhone.isPlatformCompatible(target)
-	fmt.Printf("OS Compatible: %t\n", compatibility)
+	fmt.Printf("\nOS Compatible: %t\n", compatibility)
 	myPhone.platformOs = "Android 11"
 	compatibility = myPhone.isPlatformCompatible(target)
 	fmt.Printf("OS Compatible: %t\n", compatibility)
@@ -118,9 +134,9 @@ func main() {
 	hasFaceID := myPhone.hasFaceID()
 
 	if hasFaceID {
-		fmt.Printf("My phone has FaceID sensor\n")
+		fmt.Printf("\nMy phone has FaceID sensor\n")
 	} else {
-		fmt.Printf("My phone does not have FaceID sensor\n")
+		fmt.Printf("\nMy phone does not have FaceID sensor\n")
 	}
 
 	// Determining weight class of my phone
@@ -132,10 +148,13 @@ func main() {
 	isAvailable := myPhone.isAvailable()
 
 	if isAvailable {
-		fmt.Printf("My phones launch status is available\n")
+		fmt.Printf("\nMy phones launch status is available\n")
 	} else {
-		fmt.Printf("My phones launch status is not available\n")
+		fmt.Printf("\nMy phones launch status is not available\n")
 	}
+
+	// Before reset
+	myPhone.displayDetails()
 
 	// Resetting phone
 	myPhone.reset()
@@ -143,27 +162,31 @@ func main() {
 	// Display phones reset
 	myPhone.displayDetails()
 
+	// Test 3
+	// Showing that the body dimension is set to null and body weight set to 0
+	cellMap[2].displayDetails()
+
 	// Report functions in use
 	// Finding year with most releases
 	year := yearWithMostLaunches(cellMap)
 
 	if year > 0 {
-		fmt.Printf("Year with the most phone launches (later than 1999): %d\n", year)
+		fmt.Printf("\nYear with the most phone launches (later than 1999): %d\n", year)
 	} else {
-		fmt.Println("No launches found in years later than 1999.")
+		fmt.Println("\nNo launches found in years later than 1999.")
 	}
 	// Finding how many phones have one sensor
 	count := oneSensor(cellMap)
-	fmt.Printf("Number of phones with only one feature sensor: %d\n", count)
+	fmt.Printf("\nNumber of phones with only one feature sensor: %d\n", count)
 	// Finding which phones released atleast one year later
 	results := oneYearLater(cellMap)
-	fmt.Println("Phones announced in one year and released in another year:")
+	fmt.Println("\nPhones announced in one year and released in another year:")
 	for _, phone := range results {
 		fmt.Printf("%s, %s\n", phone.oem, phone.model)
 	}
 	// Finding the highest average body weight
 	highestAvgOEM := findHighestAvgBodyWeight(cellMap)
-	fmt.Printf("OEM with the highest average body weight: %s\n", highestAvgOEM)
+	fmt.Printf("\nOEM with the highest average body weight: %s\n", highestAvgOEM)
 }
 
 // Report Functions
@@ -315,7 +338,7 @@ func parseFloat(sizeStr string) float64 {
 // Seven class methods
 // Displays all the phones information
 func (phone Cell) displayDetails() {
-	fmt.Printf("OEM: %s\n", phone.oem)
+	fmt.Printf("\nOEM: %s\n", phone.oem)
 	fmt.Printf("Model: %s\n", phone.model)
 	fmt.Printf("Launch Announced: %d\n", phone.launchAnnounced)
 	fmt.Printf("Launch Status: %s\n", phone.launchStatus)
@@ -378,11 +401,11 @@ func (phone *Cell) weightClass() {
 	)
 
 	if phone.bodyWeight <= lightWeightUpperLimit {
-		fmt.Printf("Lightweight\n")
+		fmt.Printf("The Phone Is Lightweight\n")
 	} else if phone.bodyWeight > heavyWeightLowerLimit {
-		fmt.Printf("Heavy\n")
+		fmt.Printf("\nThe Phone Is Heavy\n")
 	} else {
-		fmt.Printf("Standard\n")
+		fmt.Printf("\nThe Phone Is Standard\n")
 	}
 }
 
